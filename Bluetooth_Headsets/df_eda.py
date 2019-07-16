@@ -29,6 +29,17 @@ def chk_mv(df):
     mv_by_col = mv_bycol[mv_bycol['num_mv'] > 0]
     print(mv_by_col)
     
+def chk_product(s):
+    # check if product name contains the string "headset", "headphone", or "earbud"
+    keep = False
+    for s0 in ['headset','headphone','earbud','earpiece', 'earset', 'earphone','headsets','headphones','earbuds','earpieces', 'earsets', 'earphones']:
+        if s0 in s.lower():
+            keep = True
+            break
+        else:
+            continue
+    return keep
+    
 df_rev, df_meta = read_full_DF(detail_cat)
 print(df_rev.columns,'/n')
 print(df_rev.dtypes,'/n')
@@ -86,6 +97,14 @@ df['brand'].value_counts()
 # drop records with missing reviewText or title
 df = df.dropna(subset = ['reviewText','title'])
 df['brand'].value_counts()
+
+# filter title for headset, headphone, earbud
+print(df['asin'].nunique())
+keep_prod = df['title'].apply(chk_product)
+print(np.sum(keep_prod))
+print(df[ keep_prod == False ]['title'].nunique())
+df = df[ keep_prod == True ]
+print(df['asin'].nunique())
 
 # fix row index 
 df.reset_index(drop=True, inplace = True)

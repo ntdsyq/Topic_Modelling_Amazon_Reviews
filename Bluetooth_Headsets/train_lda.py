@@ -74,10 +74,11 @@ coherence_ldamallet = coherence_model_ldamallet.get_coherence()
 print('\nCoherence Score: ', coherence_ldamallet)
 
 # Show Topics
-pprint(ldamallet.show_topics(formatted=False))
+for t in range(20):
+    pprint(ldamallet.show_topic(t))
 
 ## Optimze number of topics k based on coherence score 
-limit = 21
+limit = 26
 start = 5
 step = 1
 model_lst, coherence_lst = select_k(dictionary, DTM, reviews, limit, start=start, step=step)
@@ -94,13 +95,15 @@ for m, cv in zip(x, coherence_lst):
     print("Num Topics =", m, " has Coherence Value of", round(cv, 4))
     
 ## Pick two models to save
+x1 = x[15]
+x2 = x[19]
 lda1 = model_lst[15]  # 15 -> 20 topics
-lda2 = model_lst[10]  # 10 -> 15 topics
+lda2 = model_lst[19]  # 19 -> 24 topics
 
 ## Save the best models
 import pickle
 with open('ldamodels.pickle', 'wb') as f:
-    pickle.dump([lda1, lda2, DTM, dictionary], f)
+    pickle.dump([lda1, lda2, x1, x2, DTM, dictionary], f)
 
 
 

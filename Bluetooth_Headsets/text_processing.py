@@ -167,6 +167,11 @@ stop_words = stopwords.words('english')
 
 # add stopwords that are unique to this collection of text
 stop_words.extend(['headset','bluetooth','headphone','headphones'])  
+#brandlist = ['Plantronics', 'Jabra', 'Motorola', 'LG', 'Kinivo', 'Samsung', 'Sony',
+#       'JayBird', 'soundbot', 'iKross', 'Bose', 'MEElectronics', 'Jawbone']
+#brandlist = [b.lower() for b in brandlist]
+#stop_words.extend(brandlist)
+
 df.loc[:,'review_no_stopwords'] = [remove_stopwords(r.lower(), stop_words) for r in df['review_no_punc']]
 freq_words(list(df['review_no_stopwords']))
 
