@@ -94,7 +94,7 @@ plt.show()
 for m, cv in zip(x, coherence_lst):
     print("Num Topics =", m, " has Coherence Value of", round(cv, 4))
     
-## Pick two models to save
+## Pick two best models to save
 x1 = x[15]
 x2 = x[19]
 lda1 = model_lst[15]  # 15 -> 20 topics

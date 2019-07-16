@@ -5,7 +5,7 @@ Created on Mon Jul  8 19:55:56 2019
 @author: yanqi
 """
 import os
-proj_path = 'C:\\Users\\yanqi\\Documents\\NYCDSA\\Project 4 - Capstone\\AmazonReview\\Bluetooth_Headsets_Clean'
+proj_path = 'C:\\Users\\yanqi\\Documents\\NYCDSA\\Project 4 - Capstone\\AmazonReview\\Bluetooth_Headsets'
 
 import pandas as pd
 pd.set_option('display.max_colwidth', -1)  # to view entire text in any column
@@ -121,3 +121,10 @@ def topn_docs_by_topic(topics_docs_dict,topic_num, topn = 10):
 
 def make_bigrams(bigram_mod, texts):
     return [bigram_mod[doc] for doc in texts]
+
+def load_processed_data():
+    # load processed data
+    df = pd.read_csv(detail_cat + "_processed.csv")
+    reviews = df['review_lemmatized'].copy()
+    reviews = reviews.apply(lambda x: x.split())
+    return df, reviews
