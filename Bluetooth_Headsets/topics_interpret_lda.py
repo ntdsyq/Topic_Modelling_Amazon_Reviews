@@ -66,15 +66,17 @@ top_docs_df[['asin','product', 'prob_from_topic','rating']]
 top_docs_df['reviewText'][0:5]
 
 # check for meaningful topics, combine similar topics, to arrive at final rating dimension
-# go with 24 topics, prune to 18 topics
-topic_df_final = topic_df.iloc[ [0, 2, 3, 4, 5, 6, 7, 8, 9, 13, 14, 16, 17, 18, 19], :].copy()
-topic_df_final.reset_index(drop=True, inplace=True)
-topic_df_final.loc[:,'name'] = ['buttons','fit_head','noise_cancellation', 
+# go with 20 topics, 15 topics out of 20 are good
+#topic_df_final = topic_df.iloc[ [0, 2, 3, 4, 5, 6, 7, 8, 9, 13, 14, 16, 17, 18, 19], :].copy()
+#topic_df_final.reset_index(drop=True, inplace=True)
+topic_df.loc[:,'name'] = ['buttons','motorola_misc','fit_head','noise_cancellation', 
                   'misc_issues_problems','cheap','phone_connection', 
-                  'fit_ear','great_overall','sound_quality','charging','audio_performance','voice_command', 
+                  'fit_ear','great_overall','sound_quality','plantronics','not_sure','jabra',
+                  'charging','audio_performance','not_sure','voice_command', 
                   'transaction_experience','active_lifestyle','battery']
 
-topic_df_final.loc[:,'meaning'] = ["topic 0: various buttons e.g. power and volume control",
+topic_df.loc[:,'meaning'] = ["topic 0: various buttons e.g. power and volume control",
+                  "topic 1: for or related to motorola products",
                   "topic 2: how the headeset fit on one's head and ear, such as with glasses",
                   "topic 3: whether the people you are talking to can hear background noise, especially in cars, whether has noise cancellation feature", 
                   "topic 4: miscellaneous problems and issues",
@@ -83,14 +85,22 @@ topic_df_final.loc[:,'meaning'] = ["topic 0: various buttons e.g. power and volu
                   "topic 7: fit on into/ear, due to e.g. earbud depth, cover, ear hook shape, ear wires",
                   "topic 8: highly satisfied overall, specially good quality for the price",
                   "topic 9: sound quality, sometimes with detailed evaluation, bass",
+                  "topic 10: (primarily) high praises for the plantronics brand",
+                  "topic 11: not sure about meaning",
+                  "topic 12: for the jabra brand",
                   "topic 13: everything related to charging the headset: cables, charging speed, through car-charger, on-the-go charger",
                   "topic 14: experience (not just soundwise) listening to music, audiobooks, video",
+                  "topic 15: not sure about meaning",
                   "topic 16: Quality of voice command functionality/app for making calls and answering phones", 
                   "topic 17: Customer service experience related to shipping, return, replacement",
                   "topic 18: Usability in a active/sports setting, such as during running and gym workout",
                   "topic 19: Quality of battery e.g. talk time on full charge, battery indicator, deteriation over time"]
 
-topic_df_final[['topic_num','name','meaning','keywords']].to_csv("final_topics.csv", index = False)
+topic_df.loc[:,"select"] = "no"
+good_cols = [0, 2, 3, 4, 5, 6, 7, 8, 9, 13, 14, 16, 17, 18, 19]
+topic_df.iloc[good_cols, -1] = "yes"
+
+topic_df[['select','topic_num','name','meaning','keywords']].to_csv("final_topics.csv", index = False)
 
 
 

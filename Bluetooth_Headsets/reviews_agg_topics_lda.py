@@ -23,9 +23,10 @@ df, reviews = load_processed_data()
 with open('ldamodels.pickle','rb') as f:
     lda, temp, x1, x2, DTM, dictionary = pickle.load(f) # chose model with 20 topics, selected 15 from 20
 
-# quick look at topic keywords
+# load processed topics
 nt = lda.num_topics
-topic_df = pd.DataFrame(lda.show_topics(nt), columns=['topic_num','keywords'])
+topic_df = pd.read_csv("final_topics.csv")
+#topic_df = pd.DataFrame(lda.show_topics(nt), columns=['topic_num','keywords'])
 topics_docs_dict = out_topics_docs(lda, DTM)  
 
 ## Check document probability distributions for each topic
@@ -46,14 +47,14 @@ plt.rcParams['xtick.labelsize'] = 13
 plt.rcParams['ytick.labelsize'] = 13
 
 fig, ((ax1, ax2)) = plt.subplots(nrows=1, ncols=2, figsize=(14,5))
-for i, topic_num in enumerate(topic_df_final['topic_num']):
+for i, topic_num in enumerate(topic_df['topic_num']):
     g1 = sns.kdeplot(doc_topic_probs[topic_num], ax = ax1)
-    g2 = sns.kdeplot(doc_topic_probs[topic_num], ax = ax2, cumulative = True, label = topic_df_final['name'][i])
+    g2 = sns.kdeplot(doc_topic_probs[topic_num], ax = ax2, cumulative = True, label = topic_df['name'][i])
 g1.set_xlabel('log(probability of document from topic)')
 g1.set_ylabel('Density')
 g2.set_xlabel('probability of document from topic')
 g2.set_ylabel('Cumulative probability')
-plt.savefig("document_topic_probability_distribution.pdf")
+plt.savefig("document_topic_probability_distribution_all.pdf")
 
 # distribution of length of the review
 rev_length = reviews.apply(len)
@@ -66,6 +67,7 @@ plt.savefig("review_length_distribution.pdf")
 
 # scatterplot of the length of the review vs. probability from each topic
 topic_num = 0
+plt.figure(figsize = (10,8))
 sns.scatterplot(x = np.log10(rev_length), y = doc_topic_probs[topic_num])
 plt.xlabel("Length of review on log scale")
 plt.ylabel("Probability of review from topic" + str(topic_num))
@@ -75,7 +77,8 @@ plt.savefig("scatterplot of log review length vs topic probability for topic" + 
 plt.figure(figsize = (15,8))
 sns.violinplot(x= rev_length_deciles, y= np.log(doc_topic_probs[topic_num]), palette="Set3")
 plt.xlabel('Review Length Deciles')
-plt.ylabel('Probability from topic' + topic_num)
+plt.ylabel('Probability from topic' + str(topic_num))
+plt.savefig("Violinplot of review length decile vs topic probability for topic" + str(topic_num) + ".pdf")
 
 # boxplot of doc_topic probabilities grouped by rev_length_deciles
 plt.figure(figsize = (15,8))
@@ -89,12 +92,84 @@ prob0 = 0.09
 gt_prob = {}
 for t in range(len(doc_topic_probs)):
     gt_prob["gt_prob"+str(t)] = doc_topic_probs[t] > prob0
-gt_prob_df = pd.DataFrame(gt_prob)
+has_topic_df = pd.DataFrame(gt_prob)  # indicator matrix for whether a review contains a topic
 
-revlen_numtopics_df = pd.concat([rev_length_deciles, gt_prob_df], axis = 1)
+revlen_numtopics_df = pd.concat([rev_length_deciles, has_topic_df], axis = 1)
 revlen_numtopics_df.rename({"review_lemmatized":"rev_length_deciles"}, axis = 'columns', inplace = True)
-sum_df = revlen_numtopics_df.groupby('rev_length_deciles').agg(sum)
-sum_df.to_csv("num_of_topics_by_rev_length_deciles.csv")
+cnttopics_bydecile_df = revlen_numtopics_df.groupby('rev_length_deciles').agg(sum)
+cnttopics_bydecile_df.to_csv("num_of_topics_by_rev_length_deciles.csv")  # number of reviews containing each topic, by review length deciles
 
 for i in range(sum_df.shape[1]):
-    print(i, "th topic", sum_df.iloc[:,i], "\n")
+    print(i, "th topic", cnttopics_bydecile_df.iloc[:,i], "\n")
+    
+# Number of topics in each review
+cnt_bytopics = has_topic_df.sum(axis = 1)
+cnt_bytopics.describe()  # more than 50% reviews has 0 or 1 topics
+cnt_bytopics.unique()  # each review has 0 to 5 topics
+
+# Number of topics vs. # of reviews containing that number of topics
+numrev_bynumtopic = cnt_bytopics.value_counts().reset_index()
+numrev_bynumtopic.rename({"index":"number_of_topics",0:"count_reviews"}, axis = "columns", inplace = True)
+numrev_bynumtopic.loc[:,'pct_reviews'] = numrev_bynumtopic['count_reviews']/reviews.shape[0]
+numrev_bynumtopic.sort_values(by = 'number_of_topics',inplace = True)
+numrev_bynumtopic.to_csv("num_of_reviews_by_num_of_topics.csv")
+
+# write the counts to excel file
+with pd.ExcelWriter('review topic probability diagnositics.xlsx') as writer:
+    cnttopics_bydecile_df.to_excel(writer, sheet_name='numtopics_by_revlengthdeciles')
+    numrev_bynumtopic.to_excel(writer, sheet_name='numreviews_by_numtopics',index = False)
+    
+# length of review vs. number of topics in review
+# longer reviews are more likely to contain multiple topics, but in some long reviews, only 1 topic is detected
+plt.figure(figsize = (15,8))
+sns.boxplot(x = cnt_bytopics, y = rev_length)
+plt.xlabel("number of topics present in each review")
+plt.ylabel("count of reviews with specified number of topics")
+plt.savefig("boxplot_numtopics_numreviews.pdf")
+
+# check the longest reviews with only 1 topic
+df.loc[:,'length'] = rev_length
+df.loc[:,'num_topics'] = cnt_bytopics
+
+# spot check the long reviews with only one topic
+# idx = 1: about tech support customer service from plantronics
+# idx = 2: raved about battery life, but has some other topics covered as well
+# idx = 3: good amount on sound quality, but covered a range of topics
+chk_revs1 = df.loc[ (df.length > 500) & (df.num_topics == 1) & (df.length < 1000) , 'review_no_html']  
+idx = chk_revs1.index[3]
+print(chk_revs1[idx])
+print(has_topic_df.iloc[idx,:])
+print(topic_df['name'][np.argwhere(has_topic_df.iloc[idx,:] == True)[0][0]])
+
+# spot check the reviews with 5 topics
+# idx = 0: len = 320. captured jabra, buttons, charging and voice_command. 
+# idx = 1: len = 250. active lifestyle is the main topic, the other topics not as prominent
+# idx = 2: len = 322. active lifestyle, ear and head fit, jabra, connection. 
+chk_revs2 = df.loc[ df.num_topics == 5, 'review_no_html' ]
+idx = chk_revs2.index[2]
+print(chk_revs2[idx])
+print(df['length'][idx])
+print(has_topic_df.iloc[idx,:])
+topic_idx = [item for sublist in np.argwhere(has_topic_df.iloc[idx,:] == True) for item in sublist]
+print(topic_df['name'][topic_idx])
+
+# check reviews not super short but has 0 topic detected
+chk_revs3 = df.loc[ (df.length > 50) & (df.num_topics == 0) & (df.length < 60) , 'review_no_html']
+idx = chk_revs3.index[3]
+print(chk_revs3[idx])
+print(df['length'][idx])
+print(doc_topic_prob_df.iloc[idx,:])
+print(topic_df['name'])
+
+# conclusion: 
+# some reviews extremely long and talk about everything, topic probabilities disperse too much, may only get 1 topic 
+# median length reviews are more crisp, several topics can be detected
+# very short reviews may not meet threshold for even one topic, though they may have covered several topics 
+# can force each review to have at least one topic
+
+# for each product, record how many topics, and how many times each topic is talked about
+# focus on products with larger # of reviews
+
+
+
+    
