@@ -103,6 +103,7 @@ plt.ylabel('Overall rating')
 plt.savefig('Scatterplot of topic great_overall vs. overall rating.pdf')
 
 # look for headsets that are most highly reviewed on the active life_style aspect
+df_prod_p_sub[']
 
 # clustering based on the proportions mentioning each topic on the products with at least min_num_review reviews
     
