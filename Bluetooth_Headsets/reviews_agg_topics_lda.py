@@ -97,9 +97,9 @@ has_topic_df = pd.DataFrame(gt_prob)  # indicator matrix for whether a review co
 revlen_numtopics_df = pd.concat([rev_length_deciles, has_topic_df], axis = 1)
 revlen_numtopics_df.rename({"review_lemmatized":"rev_length_deciles"}, axis = 'columns', inplace = True)
 cnttopics_bydecile_df = revlen_numtopics_df.groupby('rev_length_deciles').agg(sum)
-cnttopics_bydecile_df.to_csv("num_of_topics_by_rev_length_deciles.csv")  # number of reviews containing each topic, by review length deciles
+#cnttopics_bydecile_df.to_csv("num_of_topics_by_rev_length_deciles.csv")  # number of reviews containing each topic, by review length deciles
 
-for i in range(sum_df.shape[1]):
+for i in range(cnttopics_bydecile_df.shape[1]):
     print(i, "th topic", cnttopics_bydecile_df.iloc[:,i], "\n")
     
 # Number of topics in each review
@@ -112,7 +112,7 @@ numrev_bynumtopic = cnt_bytopics.value_counts().reset_index()
 numrev_bynumtopic.rename({"index":"number_of_topics",0:"count_reviews"}, axis = "columns", inplace = True)
 numrev_bynumtopic.loc[:,'pct_reviews'] = numrev_bynumtopic['count_reviews']/reviews.shape[0]
 numrev_bynumtopic.sort_values(by = 'number_of_topics',inplace = True)
-numrev_bynumtopic.to_csv("num_of_reviews_by_num_of_topics.csv")
+#numrev_bynumtopic.to_csv("num_of_reviews_by_num_of_topics.csv")
 
 # write the counts to excel file
 with pd.ExcelWriter('review topic probability diagnositics.xlsx') as writer:
@@ -154,6 +154,7 @@ topic_idx = [item for sublist in np.argwhere(has_topic_df.iloc[idx,:] == True) f
 print(topic_df['name'][topic_idx])
 
 # check reviews not super short but has 0 topic detected
+# mixed, sometimes  lower threshold 0.08 or 0.07 will return meaningful topics, sometimes truly no topics
 chk_revs3 = df.loc[ (df.length > 50) & (df.num_topics == 0) & (df.length < 60) , 'review_no_html']
 idx = chk_revs3.index[3]
 print(chk_revs3[idx])
@@ -168,8 +169,43 @@ print(topic_df['name'])
 # can force each review to have at least one topic
 
 # for each product, record how many topics, and how many times each topic is talked about
-# focus on products with larger # of reviews
+df['brand'].value_counts()
+df.loc[df.brand == 'Plantronics'].asin.value_counts()
+df.loc[df.asin == 'B005IMB5NG'].title.value_counts()
+
+# number of reviews by asin
+revcnt_byasin = df['asin'].value_counts().reset_index()
+revcnt_byasin.rename({"index":"asin", "asin":"count_reviews"}, axis = "columns", inplace = True)
+
+# pick case study for 2 to 3 products (with different overall ratings)
+df_prod = pd.concat([df['asin'],has_topic_df], axis = 1).groupby('asin').agg('sum').reset_index()
+df_prod = df_prod.merge(revcnt_byasin, on = 'asin')
+
+# alltopics may be greater than count_reviews, as some reviews will cover multiple topics
+df_prod.loc[:,'alltopics'] = df_prod.iloc[:,1:21].sum(axis = 1)  
+df_prod.head(1)
+
+# merge in product title and brand information
+# easier way to get counts of unique combinations of columns: df_prod.groupby(['asin','title']).size().reset_index(name = 'Freq')
+prod_info = df[['asin','title','brand']].drop_duplicates()
+avg_rating = df.groupby(['asin'])[['overall']].agg('mean').reset_index()
+prod_info=prod_info.merge(avg_rating, on = 'asin')
+prod_info.columns
+df_prod = prod_info.merge(df_prod, on = 'asin')
+df_prod.sort_values(by = 'count_reviews', ascending = False, inplace = True )
+
+# percentage of all reviews mentioning a topic
+df_prod_p = df_prod.copy()
+for i in range(nt):
+    df_prod_p[ "gt_prob"+str(i) ] = df_prod_p[ "gt_prob"+str(i) ]/df_prod_p['count_reviews']
 
 
-
+# write the counts to excel file
+with pd.ExcelWriter('review topic probability diagnositics.xlsx') as writer:
+    cnttopics_bydecile_df.to_excel(writer, sheet_name='numtopics_by_revlengthdeciles')
+    numrev_bynumtopic.to_excel(writer, sheet_name='numreviews_by_numtopics',index = False)
+    df_prod.to_excel(writer, sheet_name = 'counts_byasin', index = False)
+    df_prod_p.to_excel(writer, sheet_name = 'counts_p_byasin', index = False)
     
+# visualize df_prod_p as a heatmap for top 10 to 15 products (based on # of reviews)
+def topn_topics_prod(topn = 5):   
