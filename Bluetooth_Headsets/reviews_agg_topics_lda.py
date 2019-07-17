@@ -4,6 +4,12 @@ Created on Tue Jul 16 10:48:21 2019
 
 @author: yanqi
 """
+## Various diagnostics of the document_topic probabilities (one document = one review)
+## Choose threshold for calling "a topic is present in a review"
+## Aggregate topic counts at product level for building business use cases
+## outputs: 
+### - A few PDF charts 
+### - Summary in "review topic probability diagnositics.xlsx"
 
 import os
 from model_utils import detail_cat, proj_path
@@ -15,11 +21,8 @@ from pprint import pprint
 from model_utils import out_topics_docs, check_topic_doc_prob, topn_docs_by_topic, load_processed_data
 pd.set_option('display.max_columns', 500)
 
-## Detailed look at the topic and associated documents 
-## Interpret the topics, assign names & meaning
+# load review data, lda model and gensim corpus
 df, reviews = load_processed_data()
-
-# load model and gensim corpus
 with open('ldamodels.pickle','rb') as f:
     lda, temp, x1, x2, DTM, dictionary = pickle.load(f) # chose model with 20 topics, selected 15 from 20
 
@@ -200,12 +203,14 @@ for i in range(nt):
     df_prod_p[ "gt_prob"+str(i) ] = df_prod_p[ "gt_prob"+str(i) ]/df_prod_p['count_reviews']
 
 
-# write the counts to excel file
+# write the counts to excel file for visual inspection
 with pd.ExcelWriter('review topic probability diagnositics.xlsx') as writer:
     cnttopics_bydecile_df.to_excel(writer, sheet_name='numtopics_by_revlengthdeciles')
     numrev_bynumtopic.to_excel(writer, sheet_name='numreviews_by_numtopics',index = False)
     df_prod.to_excel(writer, sheet_name = 'counts_byasin', index = False)
     df_prod_p.to_excel(writer, sheet_name = 'counts_p_byasin', index = False)
     
-# visualize df_prod_p as a heatmap for top 10 to 15 products (based on # of reviews)
-def topn_topics_prod(topn = 5):   
+
+# write to pickle file for later use
+with open('agg_prod.pickle', 'wb') as f:
+    pickle.dump([df_prod, df_prod_p], f)

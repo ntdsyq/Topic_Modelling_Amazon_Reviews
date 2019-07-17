@@ -6,6 +6,7 @@ Created on Wed Jul 10 11:06:41 2019
 """
 ## Detailed look at the topic and associated documents 
 ## Interpret the topics, assign names & meaning
+## Select topics that are most meaningful (column 'select' in topic_df)
 
 import os
 from model_utils import detail_cat, proj_path
