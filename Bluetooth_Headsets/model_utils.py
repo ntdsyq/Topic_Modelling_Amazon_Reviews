@@ -6,6 +6,7 @@ Created on Mon Jul  8 19:55:56 2019
 """
 import os
 proj_path = 'C:\\Users\\yanqi\\Documents\\NYCDSA\\Project 4 - Capstone\\AmazonReview\\Bluetooth_Headsets'
+os.chdir(proj_path)
 
 import pandas as pd
 pd.set_option('display.max_colwidth', -1)  # to view entire text in any column

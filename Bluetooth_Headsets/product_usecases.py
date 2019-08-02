@@ -6,11 +6,6 @@ Created on Wed Jul 17 10:42:34 2019
 """
 ## Implement various business cases using the product level topic counts produced in reviews_agg_topics_lda.py
 
-import os
-from model_utils import proj_path
-os.chdir(proj_path)
-os.getcwd()
-
 import pandas as pd
 import pickle
 import seaborn as sns
@@ -20,9 +15,7 @@ from model_utils import load_processed_data
 pd.set_option('display.max_columns', 500)
 
 sns.set()
-plt.rcParams['axes.labelsize'] = 14
-plt.rcParams['xtick.labelsize'] = 13
-plt.rcParams['ytick.labelsize'] = 13
+
 
 # load product (asin) level topic counts and product name, brand info
 with open('agg_prod.pickle','rb') as f:
@@ -32,8 +25,9 @@ with open('agg_prod.pickle','rb') as f:
 topic_df = pd.read_csv("final_topics.csv")
 nt = topic_df.shape[0]
 
-# for specified asin, return topn topics with highest # of mentions in this product's reviews
 def prod_topn_topics(asin, filter_topic = True, topn = 5):
+    # for specified asin, return topn topics with highest # of mentions in this product's reviews
+
     cols = [ "gt_prob" + str(i) for i in range(nt)]
     topic_prop = df_prod_p.loc[ df_prod_p.asin == asin, cols].transpose(copy = True)
     topic_prop.reset_index(drop = True, inplace = True)
@@ -50,6 +44,7 @@ def prod_topn_topics(asin, filter_topic = True, topn = 5):
     return topic_prop.iloc[0:topn, :].loc[:, ['topic_num', 'name', 'prop_with_topic']]
 
 def prod_topprob_topics(asin, filter_topic = True, p0 = 0.08):
+    # for specified asin (product), return the proportion of reviews that contain each topic
     cols = [ "gt_prob" + str(i) for i in range(nt)]
     topic_prop = df_prod_p.loc[ df_prod_p.asin == asin, cols].transpose(copy = True)
     topic_prop.reset_index(drop = True, inplace = True)
@@ -83,7 +78,7 @@ print(prod_topn_topics(asin = 'B007MC6WGK'),'\n')  # a plantronics with lower ra
 # get top topics for the most highly reviewed 10 products based on a cut-off on % of reviews mentioning this topic
 for i in range(10):
     print(df_prod_p[['asin', 'title', 'brand', 'overall','count_reviews', 'alltopics']].iloc[i,:])
-    print(prod_topprob_topics(asin = df_prod_p.iloc[i,:].asin),'\n')
+    print(prod_topprob_topics(asin = df_prod_p.iloc[i,['name', 'prop_with_topic']]].asin),'\n')
 
 # top topics for all plantronics products, without filtering out topic 'plantronics'
 brand = 'Motorola'
@@ -101,9 +96,29 @@ plt.title('Amount of "great_overall" mention vs. overall rating')
 plt.xlabel('Proportion of reviews with the topic "great_overall"')
 plt.ylabel('Overall rating')
 plt.savefig('Scatterplot of topic great_overall vs. overall rating.pdf')
+df_great = df_prod_p_sub.loc[ df_prod_p_sub['gt_prob8'] > 0.1, ['asin','title', 'brand', 'overall','count_reviews','gt_prob8'] ]
+df_great.to_csv("great_overall_top5.csv",index = False)
 
 # look for headsets that are most highly reviewed on the active life_style aspect
-df_prod_p_sub[']
+df_prod_p_sub18 = df_prod_p_sub.sort_values(by = 'gt_prob18', ascending = False)
+df_prod_p_sub18[['asin','title', 'brand', 'overall','count_reviews','gt_prob18']].to_csv("active_lifestyle_topproducts.csv",index=False)
 
-# clustering based on the proportions mentioning each topic on the products with at least min_num_review reviews
+# shorten title in csv for plotting and read back in
+df_prod_p_sub18 = pd.read_csv("active_lifestyle_topproducts.csv", index_col=False)
+df_prod_p_sub18 = df_prod_p_sub18.loc[ df_prod_p_sub18['gt_prob18'] > 0.13, ['asin','title', 'brand', 'overall','count_reviews','gt_prob18']]
+# barplot the top 10 
+sns.set(style="whitegrid")
+f, ax = plt.subplots(figsize=(6, 10))
+#sns.set_color_codes("pastel")
+sns.barplot(x="gt_prob18", y="title", data=df_prod_p_sub18, color = 'g')
+ax.set(xlabel="Proportion of reviews containing the active_lifestyle topic", ylabel="")
+ax.tick_params(axis='y', which='major', labelsize=16)
+ax.tick_params(axis='x', which='major', labelsize=14)
+ax.xaxis.label.set_size(16)
+sns.despine(right=True, top=True)
+#plt.tight_layout()
+#plt.savefig("active_lifestype_topproducts.pdf")
+
+
+# two way hierarchical clustering based on the proportions mentioning each topic on the products with at least min_num_review reviews
     

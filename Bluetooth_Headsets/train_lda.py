@@ -12,9 +12,8 @@ Created on Mon Jul  8 19:47:52 2019
 @author: yanqi
 """
 import os
-from model_utils import detail_cat, proj_path
-#proj_path = 'C:\\Users\\yanqi\\Documents\\NYCDSA\\Project 4 - Capstone\\AmazonReview\\Bluetooth_Headsets'
-os.chdir(proj_path)
+from model_utils import detail_cat
+
 import pandas as pd
 pd.set_option('display.max_colwidth', -1)  # to view entire text in any column
 import numpy as np
@@ -104,6 +103,26 @@ lda2 = model_lst[19]  # 19 -> 24 topics
 import pickle
 with open('ldamodels.pickle', 'wb') as f:
     pickle.dump([lda1, lda2, x1, x2, DTM, dictionary], f)
+    
+# plot coherence score
+limit = 26
+start = 5
+step = 1
+x = range(start, limit, step)
+cscore_plot = [0.4076, 0.3953, 0.399, 0.3943, 0.4237, 0.4169, 0.4122, 0.4218, 
+               0.4225, 0.4316, 0.4264, 0.4263, 0.437, 0.4272, 0.4428, 0.4461, 
+               0.44, 0.4418, 0.4359, 0.4473, 0.4451]
+plt.rcParams['axes.labelsize'] = 14
+plt.rcParams['xtick.labelsize'] = 12
+plt.rcParams['ytick.labelsize'] = 12
+
+from matplotlib.ticker import MaxNLocator
+ax = plt.figure(figsize=(10,6)).gca()
+ax.plot(x, cscore_plot, '-o')
+ax.set_xlabel("Number of Topics (k)")
+ax.set_ylabel("Coherence score of the LDA model")
+ax.xaxis.set_major_locator(MaxNLocator(integer = True))
+plt.savefig("screeplot_numberoftopics.pdf")
 
 
 

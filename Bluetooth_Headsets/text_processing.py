@@ -5,15 +5,13 @@ Created on Tue Jul  9 20:40:20 2019
 @author: yanqi
 """
 
-import os
-from model_utils import detail_cat, proj_path
-os.chdir(proj_path)
 
 import pandas as pd
 pd.set_option('display.max_colwidth', -1)
 import matplotlib.pyplot as plt
 %matplotlib inline
 import seaborn as sns
+import random
 
 from bs4 import BeautifulSoup
 import nltk
@@ -196,6 +194,13 @@ df.loc[:, 'review_lemmatized'] = df['review_lemmatized'].apply(remove_num)
 # check text after each processing step
 cols = ['reviewText','review_no_html','review_no_contraction','review_no_dots','review_no_punc','review_no_stopwords','review_lemmatized']
 chk_cleaned(df,cols = cols)
+
+# for blog: before and after word frequencies
+plt.rcParams['axes.labelsize'] = 14
+plt.rcParams['xtick.labelsize'] = 12
+plt.rcParams['ytick.labelsize'] = 12
+freq_words(list(df['reviewText']),terms = 20)
+freq_words(list(df['review_lemmatized']), terms = 20)
 
 # save processed review df for topic modeling
 save_cols = ['asin', 'brand', 'title', 'overall', 'summary', 

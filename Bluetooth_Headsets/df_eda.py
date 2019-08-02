@@ -6,12 +6,17 @@ Created on Tue Jul  9 16:49:28 2019
 """
 import numpy as np
 import pandas as pd
-import os
-from model_utils import detail_cat, proj_path
-os.chdir(proj_path)
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+from model_utils import detail_cat
 pd.set_option('display.max_colwidth', -1) 
 pd.set_option('display.max_columns', 500)
 
+sns.set()
+plt.rcParams['axes.labelsize'] = 14
+plt.rcParams['xtick.labelsize'] = 13
+plt.rcParams['ytick.labelsize'] = 13
 
 # eda of raw review, meta data for selected categories
 # basic data cleaning without getting into processing of the reviewText: missing values, filter by time, number of reviews
@@ -61,12 +66,22 @@ df = dfall[['asin','brand','title', 'overall','summary', 'reviewText', 'reviewYe
 
 
 # time distribution
-df.reviewYear.value_counts()
+# df.reviewYear.value_counts()
+# number of reviews by year and number of products by year
+fig, ((ax1, ax2)) = plt.subplots(nrows=1, ncols=2, figsize=(14,5))
+prod_by_yr = df[['reviewYear','asin']].drop_duplicates()
+g2 = sns.countplot( x = 'reviewYear', data = prod_by_yr, color = "lightblue", ax = ax1 )
+g2.set_xlabel('Year')
+g2.set_ylabel('Number of Products Reviewed')
+
+g1 = sns.countplot( x = 'reviewYear', data = df, color = "lightgreen", ax = ax2 )
+g1.set_xlabel('Year of Review')
+g1.set_ylabel('Number of Reviews')
+plt.savefig("eda_rev_prod_byyear.pdf")
 
 # filter for most recent 4 years
 df = df.loc[ df.reviewYear >= 2011, :]
 
-# 
 # Basic EDA 
 # number of asins, number of associated reviews for each asin
 review_cnts = df.groupby(['asin','title']).agg({'reviewText':'count'}).sort_values(by = 'reviewText', ascending = False)

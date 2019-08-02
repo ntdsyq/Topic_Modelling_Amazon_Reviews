@@ -11,20 +11,25 @@ Created on Tue Jul 16 10:48:21 2019
 ### - A few PDF charts 
 ### - Summary in "review topic probability diagnositics.xlsx"
 
-import os
-from model_utils import detail_cat, proj_path
+from model_utils import detail_cat
 import pandas as pd
-os.chdir(proj_path)
-os.getcwd()
+
 import pickle
 from pprint import pprint
 from model_utils import out_topics_docs, check_topic_doc_prob, topn_docs_by_topic, load_processed_data
 pd.set_option('display.max_columns', 500)
 
+import gensim
+from gensim import corpora
+import os
+os.environ['MALLET_HOME'] = "C:/Users/yanqi/Library/mallet-2.0.8"
+mallet_path = "C:/Users/yanqi/Library/mallet-2.0.8/bin/mallet"
+
 # load review data, lda model and gensim corpus
 df, reviews = load_processed_data()
 with open('ldamodels.pickle','rb') as f:
     lda, temp, x1, x2, DTM, dictionary = pickle.load(f) # chose model with 20 topics, selected 15 from 20
+
 
 # load processed topics
 nt = lda.num_topics
