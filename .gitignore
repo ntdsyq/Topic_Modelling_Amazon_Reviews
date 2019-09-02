@@ -3,6 +3,8 @@
 /References
 /Laptop
 /blogpost
+/_pycache_
+/.ipynb_checkpoints
 Cell_Phones_and_Accessories_category_counts.csv
 Electronics_category_counts.csv
 *.DS_Store
