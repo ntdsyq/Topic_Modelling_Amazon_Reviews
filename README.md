@@ -2,4 +2,4 @@ Analyzing Amazon reviews with natural language processing techniques to undercov
 - By customers: prioritizing products with relevant features  
 - By seller / manufacturer: monitor product perception to improve design and service
 
-Future development: sentiment analysis by topic (product feature)
+Read more in this [blogpost](https://nycdatascience.com/blog/student-works/learning-category-wise-product-features-from-amazon-reviews/)
