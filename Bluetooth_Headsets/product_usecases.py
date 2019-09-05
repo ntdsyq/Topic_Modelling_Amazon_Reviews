@@ -118,7 +118,4 @@ ax.xaxis.label.set_size(16)
 sns.despine(right=True, top=True)
 #plt.tight_layout()
 #plt.savefig("active_lifestype_topproducts.pdf")
-
-
-# two way hierarchical clustering based on the proportions mentioning each topic on the products with at least min_num_review reviews
-    
+   
