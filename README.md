@@ -6,10 +6,10 @@ Analyzing Amazon reviews with natural language processing techniques to uncover 
 Read more in this [blogpost](https://nycdatascience.com/blog/student-works/learning-category-wise-product-features-from-amazon-reviews/)
 
 ### File organization
-- process_raw.py: extracts review and meta data from the raw json.gz files for a category of interest, e.g. Bluetooth speakers
-- Bluetooth_Headsets: main analyses folder. The pipeline consists of the following 6 steps  
-  - step1 df_eda.py: EDA of raw data and basic data cleaning (missing value, filtering) without advanced text processing.
-  - step2 text_processing.py: extensive text processing including expanding contractions, removing punctuations and stopwords, lemmatization and tokenization.
+process_raw.py: extracts review and meta data from the raw json.gz files for a category of interest, e.g. Bluetooth speakers
+Bluetooth_Headsets/ is the main analyses folder. The pipeline consists of the following 6 steps  
+1. df_eda.py: EDA of raw data and basic data cleaning (missing value, filtering) without advanced text processing.
+2. text_processing.py: extensive text processing including expanding contractions, removing punctuations and stopwords, lemmatization and tokenization.
   - step3 train_lda.py: training LDA model and optimize parameters with the cleaned review text data
   - step4 topics_interpret_lda.py: interpret topics based on topic keywords, and reviews with the highest probability being generated from each topic. 
   - step5 reviews_agg_topics_lda.py: diagnostics of the document_topic probabilities. Aggregate topic counts at the review and product level.
